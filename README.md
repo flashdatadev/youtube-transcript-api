@@ -76,7 +76,25 @@ Open `output/demo/` to see synthetic captions in all six formats and timestamped
 
 ### Use an existing API key
 
-[Get a FlashData API key](https://flashdata.dev/signup), then set it in your shell:
+Pass your [FlashData API key](https://flashdata.dev/signup) directly to the Python client. Replace `YOUR_VIDEO_ID` with a YouTube video ID or watch URL that has captions:
+
+```python
+from flashdata_transcript import TranscriptClient
+
+with TranscriptClient(api_key="your-flashdata-api-key") as client:
+    transcript = client.fetch("YOUR_VIDEO_ID", language="en")
+
+print(transcript.full_text)
+for segment in transcript.segments:
+    print(f"{segment.start:.2f}–{segment.end:.2f}: {segment.text}")
+```
+
+The client also accepts `youtu.be`, Shorts, live, and embed video URLs. It validates inputs before making a request.
+
+<details>
+<summary>Optional: configure the key through an environment variable</summary>
+
+For the CLI or deployment configuration, set `FLASHDATA_API_KEY` in your shell:
 
 ```bash
 export FLASHDATA_API_KEY="your-flashdata-api-key"
@@ -86,20 +104,9 @@ export FLASHDATA_API_KEY="your-flashdata-api-key"
 $env:FLASHDATA_API_KEY = "your-flashdata-api-key"
 ```
 
-Replace `YOUR_VIDEO_ID` below with a YouTube video ID or watch URL that has captions:
+Then use `TranscriptClient()` without an `api_key` argument. An explicit `api_key` argument takes precedence over the environment and saved trial access.
 
-```python
-from flashdata_transcript import TranscriptClient
-
-with TranscriptClient() as client:
-    transcript = client.fetch("YOUR_VIDEO_ID", language="en")
-
-print(transcript.full_text)
-for segment in transcript.segments:
-    print(f"{segment.start:.2f}–{segment.end:.2f}: {segment.text}")
-```
-
-The client also accepts `youtu.be`, Shorts, live, and embed video URLs. It validates inputs before making a request.
+</details>
 
 ## What you can build
 

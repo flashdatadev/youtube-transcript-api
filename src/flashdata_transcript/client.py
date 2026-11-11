@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from collections import Counter
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Any
 
 from flashdata import FlashData
 
+from .auth import AuthManager, resolve_api_key
 from .errors import ResponseError, RetrievalFailed
 from .models import LanguageError, Transcript, TranscriptResult
 from .validation import caption_origin, language_code, language_codes, video_id
@@ -33,12 +35,30 @@ class TranscriptClient:
     """Fetch existing YouTube captions through FlashData. No automatic request retries."""
 
     def __init__(
-        self, api_key: str | None = None, *, timeout: float = 120, sdk: FlashData | None = None
+        self,
+        api_key: str | None = None,
+        *,
+        timeout: float = 120,
+        sdk: FlashData | None = None,
+        state_dir: str | Path | None = None,
     ) -> None:
         if sdk is not None and api_key is not None:
             raise ValueError("Provide an API key or an existing SDK client, not both.")
-        self._sdk = sdk if sdk is not None else FlashData(api_key=api_key, timeout=timeout)
+        self._sdk = (
+            sdk
+            if sdk is not None
+            else FlashData(api_key=resolve_api_key(api_key, state_dir), timeout=timeout)
+        )
         self._owns_sdk = sdk is None
+
+    @classmethod
+    def from_trial(
+        cls, *, state_dir: str | Path | None = None, timeout: float = 120
+    ) -> TranscriptClient:
+        """Explicitly create/reuse live trial access, then fetch normally with its saved key."""
+        with AuthManager(state_dir, registration_transport="api") as manager:
+            manager.trial()
+        return cls(state_dir=state_dir, timeout=timeout)
 
     def __repr__(self) -> str:
         return "<TranscriptClient>"

@@ -8,7 +8,7 @@
 
 A Python client and CLI for the [FlashData YouTube Transcript API](https://flashdata.dev/docs/sources/youtube_transcript). Retrieve existing automatic or uploader-provided captions, keep their timestamps and language metadata, and export JSON, text, SRT, WebVTT, CSV, or Markdown.
 
-Built on the [official FlashData Python SDK](https://github.com/flashdatadev/flashdata-python). Live requests use a FlashData API key; the offline demo and local conversions need no key.
+Built on the [official FlashData Python SDK](https://github.com/flashdatadev/flashdata-python). **Try real transcripts before signing up—no manual API key setup needed.** The toolkit creates eligible trial access and saves its temporary key for you. Existing API keys also work.
 
 [Quickstart](#quickstart) · [CLI](#command-line-usage) · [Examples](#runnable-python-examples) · [Language selection](#language-selection) · [Dataset collection](#collect-a-transcript-dataset) · [FAQ](#frequently-asked-questions)
 
@@ -36,7 +36,37 @@ python -m pip install -e .
 python -m pip install -e .
 ```
 
-### Try it without an API key
+### Try a real YouTube transcript without API key setup
+
+```bash
+flashdata-transcript auth trial
+flashdata-transcript fetch YOUR_VIDEO_ID --language en --output transcript.json
+```
+
+Replace `YOUR_VIDEO_ID` with a YouTube video ID or URL that has captions. `auth trial` creates temporary access through FlashData's live trial service, saves the credentials privately, and shows the allowance and expiry. `fetch` then retrieves **real caption data** using that saved access.
+
+The trial supports transcript retrieval and language discovery through YouTube Metadata; both share one credit balance. Re-running `auth trial` reuses saved access. It does not renew an expired or exhausted trial. If `FLASHDATA_API_KEY` is already configured, that key takes precedence and no trial is created.
+
+```bash
+flashdata-transcript auth status
+```
+
+The displayed request counts describe the starting allowance, not the remaining balance. [Live trial and account connection guide](docs/live-trial.md).
+
+### Prefer Python only?
+
+```python
+from flashdata_transcript import TranscriptClient
+
+with TranscriptClient.from_trial() as client:
+    transcript = client.fetch("YOUR_VIDEO_ID", language="en")
+
+print(transcript.full_text)
+```
+
+`from_trial()` explicitly creates or reuses the same saved access as the CLI. Once initialized, ordinary `TranscriptClient()` calls reuse it without another registration.
+
+### Offline demo
 
 ```bash
 flashdata-transcript demo
@@ -44,7 +74,7 @@ flashdata-transcript demo
 
 Open `output/demo/` to see synthetic captions in all six formats and timestamped JSONL chunks. This command makes **no network requests**. Use a new `--output` directory to run it again.
 
-### Fetch your first transcript
+### Use an existing API key
 
 [Get a FlashData API key](https://flashdata.dev/signup), then set it in your shell:
 
@@ -163,7 +193,7 @@ Live transcripts include a source video URL and `is_demo: false`. [Output format
 
 ## Command-line usage
 
-The CLI reads `FLASHDATA_API_KEY` from your environment. `python -m flashdata_transcript` works as an alternative to `flashdata-transcript`.
+The CLI uses `FLASHDATA_API_KEY` when set; otherwise it uses the access saved by `auth trial` or account claiming. `python -m flashdata_transcript` works as an alternative to `flashdata-transcript`.
 
 ```bash
 # Fetch and save normalized JSON
@@ -188,6 +218,23 @@ flashdata-transcript chunks transcript.json --max-chars 1200 --output chunks.jso
 ```
 
 Existing output files are not overwritten. Exit codes: `0` success, `1` request/input/file error, `2` partial or failed collection/language results, `130` interrupted. Use `--help` on any command.
+
+## Continue with your FlashData account
+
+Before the trial expires, run:
+
+```bash
+flashdata-transcript auth claim
+```
+
+Open the displayed FlashData link, enter the separately displayed confirmation code, then sign in or create an account. Review the requested permissions and approve use of your account balance in the browser. After approval:
+
+```bash
+flashdata-transcript auth finish --wait
+flashdata-transcript auth status
+```
+
+The toolkit saves and verifies the owner key before completing the connection. Your usual `fetch` and `collect` commands then use it. You can also use an existing API key via `FLASHDATA_API_KEY` at any time. [Storage and recovery details](docs/live-trial.md).
 
 ## Collect a transcript dataset
 
@@ -247,11 +294,11 @@ Install this toolkit from the Git repository using the quickstart above. We do n
 
 ### Do I need a Google YouTube Data API key?
 
-No. Live calls use a **FlashData API key**. Google's official [`captions.download`](https://developers.google.com/youtube/data/v3/docs/captions/download) method requires OAuth authorization and permission to edit the video. That is a different access model from this toolkit.
+No. Live calls use a **FlashData API key**, either automatically provisioned through `auth trial` or supplied by you. Google's official [`captions.download`](https://developers.google.com/youtube/data/v3/docs/captions/download) method requires OAuth authorization and permission to edit the video. That is a different access model from this toolkit.
 
 ### Is the YouTube Transcript API free?
 
-The toolkit is open source under the MIT license. Local conversions, chunking, and the synthetic demo are free to run. Live FlashData requests consume API credits. See [current pricing](https://flashdata.dev/pricing) and your console for available trial credits and usage.
+The toolkit is open source under the MIT license. `auth trial` provides eligible temporary access for real requests before signup; the command reports its current allowance and expiry. Local conversions, chunking, and the synthetic demo need no credits. After connecting an owner account, live requests use that account's available credits. See [current pricing](https://flashdata.dev/pricing).
 
 ### Can it transcribe a video that has no captions?
 

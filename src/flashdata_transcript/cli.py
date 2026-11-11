@@ -11,6 +11,7 @@ from pathlib import Path
 from flashdata import APIError, FlashDataError
 
 from . import __version__
+from .auth import AuthManager
 from .chunks import chunk_transcript
 from .client import TranscriptClient
 from .collection import collect
@@ -52,6 +53,23 @@ def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(description="YouTube Transcript API Toolkit by FlashData")
     root.add_argument("--version", action="version", version=__version__)
     commands = root.add_subparsers(dest="command", required=True)
+    auth = commands.add_parser(
+        "auth", help="Start a live trial, check access, or connect an account"
+    )
+    auth_commands = auth.add_subparsers(dest="auth_command", required=True)
+    for name, help_text in [
+        ("trial", "Start or reuse a live trial without manually obtaining an API key"),
+        ("status", "Check selected access without displaying credentials"),
+        ("claim", "Get a browser link to approve connecting an owner account"),
+        ("finish", "Save and verify the owner key after browser approval"),
+    ]:
+        command = auth_commands.add_parser(name, help=help_text)
+        command.add_argument("--state-dir", help="Private directory for saved access")
+        if name == "finish":
+            command.add_argument("--wait", action="store_true", help="Wait for browser approval")
+            command.add_argument(
+                "--timeout", type=float, default=600, help="Wait timeout in seconds"
+            )
     fetch = commands.add_parser("fetch", help="Fetch one existing caption track")
     fetch.add_argument("video", help="YouTube video ID or URL")
     fetch.add_argument("--language", default=None, help="Example: en, es, zh-Hans, en-orig")
@@ -66,6 +84,8 @@ def parser() -> argparse.ArgumentParser:
     multi.add_argument("--languages", nargs="+", required=True)
     multi.add_argument("--manual", action="store_true")
     multi.add_argument("--output")
+    for command in [fetch, languages, multi]:
+        command.add_argument("--state-dir", help="Private directory used by auth trial")
     convert = commands.add_parser("convert", help="Convert toolkit JSON locally")
     convert.add_argument("input")
     convert.add_argument("--format", choices=FORMATS, required=True)
@@ -83,12 +103,21 @@ def parser() -> argparse.ArgumentParser:
     collection.add_argument("--resume", action="store_true")
     collection.add_argument("--retry-failed", action="store_true")
     collection.add_argument("--retry-uncertain", action="store_true")
+    collection.add_argument("--state-dir", help="Private directory used by auth trial")
     demo = commands.add_parser("demo", help="Generate synthetic example exports; no API key needed")
     demo.add_argument("--output", default="output/demo", help="New directory for demo files")
     return root
 
 
 def _run(args: argparse.Namespace) -> int:
+    if args.command == "auth":
+        with AuthManager(args.state_dir) as manager:
+            if args.auth_command == "finish":
+                result = manager.finish(wait=args.wait, timeout=args.timeout)
+            else:
+                result = getattr(manager, args.auth_command)()
+        print(_json(result), end="")
+        return 2 if result.get("status") in {"awaiting_claim", "claim_processing"} else 0
     if args.command == "demo":
         directory = Path(args.output)
         directory.mkdir(parents=True, exist_ok=False)
@@ -106,7 +135,7 @@ def _run(args: argparse.Namespace) -> int:
         return 0
     if args.command == "collect":
         lines = Path(args.input).read_text(encoding="utf-8-sig").splitlines()
-        with TranscriptClient() as client:
+        with TranscriptClient(state_dir=args.state_dir) as client:
             summary = collect(
                 client,
                 lines,
@@ -127,7 +156,7 @@ def _run(args: argparse.Namespace) -> int:
             for chunk in chunk_transcript(_load(args.input), max_chars=args.max_chars):
                 output.write(json.dumps(chunk, ensure_ascii=False) + "\n")
         else:
-            with TranscriptClient() as client:
+            with TranscriptClient(state_dir=args.state_dir) as client:
                 if args.command == "fetch":
                     transcript = client.fetch(
                         args.video, language=args.language, auto=not args.manual

@@ -19,3 +19,7 @@ class RetrievalFailed(TranscriptError):
 
 class CollectionStopped(TranscriptError):
     """The collection checkpoint was saved and needs an explicit recovery choice."""
+
+
+class AuthError(TranscriptError):
+    """Onboarding or saved access needs attention; the message never contains credentials."""

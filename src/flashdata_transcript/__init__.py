@@ -3,12 +3,13 @@
 from .chunks import chunk_transcript
 from .client import TranscriptClient
 from .collection import collect
-from .errors import CollectionStopped, ResponseError, RetrievalFailed, TranscriptError
+from .errors import AuthError, CollectionStopped, ResponseError, RetrievalFailed, TranscriptError
 from .formats import render
 from .models import LanguageError, Segment, Transcript, TranscriptResult
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __all__ = [
+    "AuthError",
     "CollectionStopped",
     "LanguageError",
     "ResponseError",

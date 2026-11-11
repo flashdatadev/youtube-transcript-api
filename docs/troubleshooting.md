@@ -4,7 +4,9 @@
 
 Install this repository with `python -m pip install -e .`, then run `python -m flashdata_transcript --help`. If the `flashdata-transcript` command is not found, activate the virtual environment or use the module form.
 
-Set `FLASHDATA_API_KEY` in the same shell that runs Python. `.env.example` documents the variable; the toolkit does not automatically load `.env` files. A Google API key is not a FlashData API key.
+For a live trial without manual key setup, run `flashdata-transcript auth trial`. Subsequent CLI and Python calls reuse the saved access. See the [live trial guide](live-trial.md) for claim, expiry, and interrupted-setup recovery.
+
+Alternatively, set `FLASHDATA_API_KEY` in the same shell that runs Python. It takes precedence over saved access. `.env.example` documents the variable; the toolkit does not automatically load `.env` files. A Google API key is not a FlashData API key.
 
 The API key needs permission for `youtube_transcript`. Language discovery additionally uses `youtube_metadata`. Check API key source permissions and the account's available credits in the FlashData console.
 

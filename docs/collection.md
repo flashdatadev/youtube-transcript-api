@@ -3,7 +3,7 @@
 `collect` is a sequential client-side workflow. It is not a wrapper around the server-side bulk API.
 
 1. Put video IDs or URLs in a UTF-8 text file, one per line.
-2. Set `FLASHDATA_API_KEY` in your shell.
+2. Run `flashdata-transcript auth trial`, or set `FLASHDATA_API_KEY` in your shell.
 3. Run `flashdata-transcript collect videos.txt --output output/transcripts.jsonl --language en`.
 4. Inspect each JSONL record's `status` and `result`.
 

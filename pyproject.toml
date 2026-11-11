@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flashdata-youtube-transcript-api"
+version = "0.1.0"
+description = "Python YouTube Transcript API client and CLI with subtitle exports and resumable datasets"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "FlashData" }]
+keywords = ["youtube-transcript-api", "youtube", "transcript", "captions", "subtitles", "srt", "rag"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Multimedia :: Video",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = ["flashdata>=1.2.0,<2"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "ruff>=0.12,<1", "build>=1,<2", "twine>=6,<7"]
+
+[project.scripts]
+flashdata-transcript = "flashdata_transcript.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/flashdatadev/youtube-transcript-api"
+Documentation = "https://flashdata.dev/docs/sources/youtube_transcript"
+Issues = "https://github.com/flashdatadev/youtube-transcript-api/issues"
+Source = "https://github.com/flashdatadev/youtube-transcript-api"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+flashdata_transcript = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

@@ -336,6 +336,7 @@ Tests use synthetic fixtures and the SDK's HTTP mock transport; no paid API key 
 
 ## More FlashData tools
 
+- [YouTube Video Download API Toolkit](https://github.com/flashdatadev/youtube-video-download-api): download the source video, MP3 audio or clips alongside your transcripts, with cloud delivery and bulk examples.
 - [YouTube Data API Toolkit](https://github.com/flashdatadev/youtube-data-api): search, video metadata, channels, and dataset examples.
 - [FlashData Python SDK](https://github.com/flashdatadev/flashdata-python): all API sources, async requests, and bulk workflows.
 - [YouTube Transcript API reference](https://flashdata.dev/docs/sources/youtube_transcript): request parameters and raw response fields.
